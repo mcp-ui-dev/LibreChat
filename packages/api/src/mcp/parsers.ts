@@ -1,4 +1,5 @@
 import type * as t from './types';
+import { toBase64 } from './utils';
 const RECOGNIZED_PROVIDERS = new Set([
   'google',
   'anthropic',
@@ -183,7 +184,8 @@ export function formatToolContent(
   }
 
   if (uiResources.length) {
-    formattedContent.push({ type: 'text', metadata: 'ui_resources', text: btoa(JSON.stringify(uiResources))});
+    const uiResourcesString = JSON.stringify(uiResources);
+    formattedContent.push({ type: 'text', metadata: 'ui_resources', text: toBase64(uiResourcesString)});
   }
 
   const artifacts = imageUrls.length ? { content: imageUrls } : undefined;

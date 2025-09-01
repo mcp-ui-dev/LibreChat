@@ -31,3 +31,16 @@ export function normalizeServerName(serverName: string): string {
 
   return normalized;
 }
+
+/**
+ * Converts a unicode string to a base64 string.
+ * Binary string encoding necessary since btoa only supports ASCII/Latin1 characters.
+ * @param str - The unicodestring to convert
+ * @returns The base64 string
+ */
+export function toBase64(str: string): string {
+  const encoder = new TextEncoder();
+  const charCodes = encoder.encode(str);
+  const binaryStr = String.fromCharCode(...charCodes);
+  return btoa(binaryStr);
+}

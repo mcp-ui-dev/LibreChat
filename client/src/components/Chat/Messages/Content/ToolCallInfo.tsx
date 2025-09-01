@@ -1,8 +1,24 @@
 import React from 'react';
 import { useLocalize } from '~/hooks';
 import { UIResourceRenderer } from '@mcp-ui/client';
-import UIResourceGrid from './UIResourceGrid';
+import UIResourceCarousel from './UIResourceCarousel';
 import type { UIResource } from '~/common';
+
+/**
+ * Converts a base64 string to a unicode string.
+ * Necessary because atob only supports ASCII/Latin1 characters.
+ * @param base64Str - The base64 string to convert
+ * @returns The unicode string
+ */
+function fromBase64(base64Str: string): string {
+  const binaryStr = atob(base64Str);
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) {
+    bytes[i] = binaryStr.charCodeAt(i);
+  }
+  const decoder = new TextDecoder();
+  return decoder.decode(bytes);
+}
 
 function OptimizedCodeBlock({ text, maxHeight = 320 }: { text: string; maxHeight?: number }) {
   return (
@@ -57,16 +73,27 @@ export default function ToolCallInfo({
   // Extract ui_resources from the output to display them in the UI
   let uiResources: UIResource[] = [];
   if (output?.includes('ui_resources')) {
-    const parsedOutput = JSON.parse(output);
-    const uiResourcesItem = parsedOutput.find(
-      (contentItem) => contentItem.metadata === 'ui_resources',
-    );
-    if (uiResourcesItem?.text) {
-      uiResources = JSON.parse(atob(uiResourcesItem.text)) as UIResource[];
+    try {
+      const parsedOutput = JSON.parse(output);
+      const uiResourcesItem = parsedOutput.find(
+        (contentItem) => contentItem.metadata === 'ui_resources',
+      );
+      if (uiResourcesItem?.text) {
+        try {
+          const decodedText = fromBase64(uiResourcesItem.text);
+          uiResources = JSON.parse(decodedText) as UIResource[];
+          output = JSON.stringify(
+            parsedOutput.filter((contentItem) => contentItem.metadata !== 'ui_resources'),
+          );
+        } catch (error) {
+          // Silently ignore invalid base64 or JSON parsing errors
+          console.error('Failed to decode ui_resources:', error);
+        }
+      }
+    } catch (error) {
+      // If JSON parsing fails, keep original output
+      console.error('Failed to parse output:', error);
     }
-    output = JSON.stringify(
-      parsedOutput.filter((contentItem) => contentItem.metadata !== 'ui_resources'),
-    );
   }
 
   return (
@@ -90,7 +117,7 @@ export default function ToolCallInfo({
               </div>
             )}
             <div>
-              {uiResources.length > 1 && <UIResourceGrid uiResources={uiResources} />}
+              {uiResources.length > 1 && <UIResourceCarousel uiResources={uiResources} />}
 
               {uiResources.length === 1 && (
                 <UIResourceRenderer
