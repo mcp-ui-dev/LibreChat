@@ -12,7 +12,7 @@ export function normalizeServerName(serverName: string): string {
   }
 
   /** Replace non-matching characters with underscores.
-    This preserves the general structure while ensuring compatibility. 
+    This preserves the general structure while ensuring compatibility.
     Trims leading/trailing underscores
     */
   const normalized = serverName.replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/^_+|_+$/g, '');
@@ -45,3 +45,18 @@ export function sanitizeUrlForLogging(url: string | URL): string {
     return '[invalid URL]';
   }
 }
+
+export const uiResourcesInstructions = `The tool response contains UI resources (URIs starting with "ui://").
+Include them in your response using markers:
+
+**CITE UI RESOURCES:**
+Use markers to reference UI resources in your text after introducing them:
+- Single resource: "Here's the product details \ue205ui0"
+- Multiple resources shown separately: "Browse these products \ue205ui0 \ue205ui1 \ue205ui2"
+- Multiple resources in carousel: "View these items \ue205ui0,1,2"
+
+The format is: \ue205ui{index} or \ue205ui{index1,index2,index3}
+- {index} is the 0-based index of the resource in the tool response
+- Use comma-separated indices to show resources in a carousel
+
+**ALWAYS describe what you're showing before the marker. The UI will be rendered inline where you place the marker.**`;

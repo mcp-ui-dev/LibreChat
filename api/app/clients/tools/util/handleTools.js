@@ -339,7 +339,15 @@ Current Date & Time: ${replaceSpecialVars({ text: '{{iso_datetime}}' })}
         });
       };
       continue;
-    } else if (tool && mcpToolPattern.test(tool)) {
+    } else if (tool && cachedTools && mcpToolPattern.test(tool)) {
+      toolContextMap[tool] = `# MCP Tool \`${tool}\`:
+      When this tool returns UI resources (URIs starting with "ui://"):
+      - Introduce what you're showing, e.g. "Here's the product details \ue205ui0"
+      - For multiple resources shown separately: "Browse these items \ue205ui0 \ue205ui1"
+      - For multiple resources in a carousel: "View these products \ue205ui0,1,2"
+      - The UI will be rendered inline where you place the marker
+      - Format: \ue205ui{index} or \ue205ui{index1,index2,index3} where indices are 0-based`;
+
       const [toolName, serverName] = tool.split(Constants.mcp_delimiter);
       if (toolName === Constants.mcp_server) {
         /** Placeholder used for UI purposes */
